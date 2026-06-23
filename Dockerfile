@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: mambaorg/micromamba:latest
+
+%files
+    cinful_env.yml /cinful_env.yml
+
+%post
+    micromamba install -n base --file cinful_env.yml && \
+        micromamba clean --all --yes
+
+FROM mambaorg/micromamba:1.5.8-lunar
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./cinful_env.yml /tmp/cinful_env.yml
+RUN micromamba install -y -n base -f /tmp/cinful_env.yml \
+    && micromamba install -y -n base conda-forge::procps-ng \
+    && micromamba clean -a -y \
+    && cp ./input/*.pep /opt/conda/lib/python3.8/site-packages/cinful/input/ 
+USER root
+ENV PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
